@@ -1,3 +1,5 @@
+import { WorkItemReference } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces";
+
 /**
  * Interface for Azure DevOps configuration
  */
@@ -18,7 +20,7 @@ export interface WorkItemQueryParams {
  * Interface for the raw work item response from Azure DevOps
  */
 export interface RawWorkItemResponse {
-  workItems: any[]; // Using any for flexibility, can be typed more specifically
+  workItems: WorkItemReference[];
   count: number;
 }
 
