@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/ryancardin15-azuredevops-mcp-badge.png)](https://mseep.ai/app/ryancardin15-azuredevops-mcp)
+
 # Azure DevOps MCP Integration
 
 # Star History
