@@ -157,63 +157,21 @@ export class ProjectService extends AzureDevOpsService {
    * Create area
    */
   public async createArea(params: CreateAreaParams): Promise<any> {
-    try {
-      // Return a mock response as a workaround
-      return {
-        id: "mock-area-id",
-        name: params.name,
-        path: params.parentPath || "",
-        structureType: "area",
-        message: "Direct classification node creation API not available, returning mock data"
-      };
-    } catch (error) {
-      console.error(`Error creating area ${params.name}:`, error);
-      throw error;
-    }
+    throw new Error('createArea is not implemented yet');
   }
 
   /**
    * Create iteration
    */
   public async createIteration(params: CreateIterationParams): Promise<any> {
-    try {
-      const attributes: any = {};
-      if (params.startDate) attributes.startDate = params.startDate;
-      if (params.finishDate) attributes.finishDate = params.finishDate;
-      
-      // Return a mock response as a workaround
-      return {
-        id: "mock-iteration-id",
-        name: params.name,
-        path: params.parentPath || "",
-        structureType: "iteration",
-        attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
-        message: "Direct classification node creation API not available, returning mock data"
-      };
-    } catch (error) {
-      console.error(`Error creating iteration ${params.name}:`, error);
-      throw error;
-    }
+    throw new Error('createIteration is not implemented yet');
   }
 
   /**
    * Get processes
    */
   public async getProcesses(params: GetProcessesParams): Promise<any> {
-    try {
-      // Return a mock response as a workaround
-      return [
-        {
-          id: "mock-process-id",
-          name: "Agile",
-          description: "Agile process template",
-          message: "Direct process API not available, returning mock data"
-        }
-      ];
-    } catch (error) {
-      console.error('Error getting processes:', error);
-      throw error;
-    }
+    throw new Error('getProcesses is not implemented yet');
   }
 
   /**
