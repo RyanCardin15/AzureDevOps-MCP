@@ -9,6 +9,7 @@ import { DevSecOpsToolMethods } from './Tools/DevSecOpsTools';
 import { GitToolMethods } from './Tools/GitTools';
 import { ProjectToolMethods } from './Tools/ProjectTools';
 import { TestingCapabilitiesToolMethods } from './Tools/TestingCapabilitiesTools';
+import { WikiToolMethods } from './Tools/WikiTools';
 import { WorkItemToolMethods } from './Tools/WorkItemTools';
 
 // Try to load environment variables from .env file with multiple possible locations
@@ -138,6 +139,7 @@ const ALL_ALLOWED_TOOLS = AIAssistedDevelopmentToolMethods
   .concat(GitToolMethods)
   .concat(ProjectToolMethods)
   .concat(TestingCapabilitiesToolMethods)
+  .concat(WikiToolMethods)
   .concat(WorkItemToolMethods);
 
 /**

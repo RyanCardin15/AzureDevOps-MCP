@@ -11,6 +11,7 @@ import { TestingCapabilitiesTools } from './Tools/TestingCapabilitiesTools';
 import { DevSecOpsTools } from './Tools/DevSecOpsTools';
 import { ArtifactManagementTools } from './Tools/ArtifactManagementTools';
 import { AIAssistedDevelopmentTools } from './Tools/AIAssistedDevelopmentTools';
+import { WikiTools } from './Tools/WikiTools';
 import { z } from 'zod';
 import { EntraAuthHandler } from './Services/EntraAuthHandler';
 
@@ -33,6 +34,7 @@ async function main() {
     const devSecOpsTools = new DevSecOpsTools(azureDevOpsConfig);
     const artifactManagementTools = new ArtifactManagementTools(azureDevOpsConfig);
     const aiAssistedDevelopmentTools = new AIAssistedDevelopmentTools(azureDevOpsConfig);
+    const wikiTools = new WikiTools(azureDevOpsConfig);
 
     // Create MCP server
     const server = new McpServer({
@@ -1682,6 +1684,236 @@ async function main() {
         return {
           content: result.content,
           rawData: result.rawData,
+        };
+      }
+    );
+
+    // Register Wiki Tools
+    allowedTools.has("createWiki") && server.tool("createWiki", 
+      "Create a new wiki",
+      {
+        name: z.string().describe("Name of the wiki"),
+        repositoryId: z.string().optional().describe("ID of the repository to back the wiki"),
+        mappedPath: z.string().optional().describe("Mapped path in the repository"),
+        type: z.enum(['codeWiki', 'projectWiki']).optional().describe("Type of wiki")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.createWiki(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getWiki") && server.tool("getWiki", 
+      "Get a wiki by ID or name",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.getWiki(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("listWikis") && server.tool("listWikis", 
+      "List all wikis in the project",
+      {},
+      async (params, extra) => {
+        const result = await wikiTools.listWikis(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("updateWiki") && server.tool("updateWiki", 
+      "Update a wiki",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        name: z.string().optional().describe("New name for the wiki"),
+        versions: z.array(z.any()).optional().describe("Version information")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.updateWiki(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("deleteWiki") && server.tool("deleteWiki", 
+      "Delete a wiki",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.deleteWiki(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("createOrUpdateWikiPage") && server.tool("createOrUpdateWikiPage", 
+      "Create or update a wiki page",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        path: z.string().describe("Path of the wiki page"),
+        content: z.string().describe("Content of the wiki page"),
+        comment: z.string().optional().describe("Comment for the change"),
+        versionDescriptor: z.object({
+          version: z.string().optional().describe("Version (branch, tag, or commit)"),
+          versionOptions: z.string().optional().describe("Version options"),
+          versionType: z.string().optional().describe("Version type")
+        }).optional().describe("Version descriptor")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.createOrUpdateWikiPage(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getWikiPage") && server.tool("getWikiPage", 
+      "Get a wiki page by path or ID",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        path: z.string().optional().describe("Path of the wiki page"),
+        id: z.number().optional().describe("ID of the wiki page"),
+        includeContent: z.boolean().optional().describe("Include page content"),
+        versionDescriptor: z.object({
+          version: z.string().optional().describe("Version (branch, tag, or commit)"),
+          versionOptions: z.string().optional().describe("Version options"),
+          versionType: z.string().optional().describe("Version type")
+        }).optional().describe("Version descriptor")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.getWikiPage(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("updateWikiPage") && server.tool("updateWikiPage", 
+      "Update a wiki page",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        path: z.string().optional().describe("Path of the wiki page"),
+        id: z.number().optional().describe("ID of the wiki page"),
+        content: z.string().describe("New content of the wiki page"),
+        comment: z.string().optional().describe("Comment for the change"),
+        eTag: z.string().optional().describe("ETag for concurrency control"),
+        versionDescriptor: z.object({
+          version: z.string().optional().describe("Version (branch, tag, or commit)"),
+          versionOptions: z.string().optional().describe("Version options"),
+          versionType: z.string().optional().describe("Version type")
+        }).optional().describe("Version descriptor")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.updateWikiPage(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("deleteWikiPage") && server.tool("deleteWikiPage", 
+      "Delete a wiki page",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        path: z.string().optional().describe("Path of the wiki page"),
+        id: z.number().optional().describe("ID of the wiki page"),
+        comment: z.string().optional().describe("Comment for the deletion")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.deleteWikiPage(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getWikiPageContent") && server.tool("getWikiPageContent", 
+      "Get wiki page content with specific formatting",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        path: z.string().optional().describe("Path of the wiki page"),
+        id: z.number().optional().describe("ID of the wiki page"),
+        format: z.enum(['markdown', 'html']).optional().describe("Format of the content"),
+        versionDescriptor: z.object({
+          version: z.string().optional().describe("Version (branch, tag, or commit)"),
+          versionOptions: z.string().optional().describe("Version options"),
+          versionType: z.string().optional().describe("Version type")
+        }).optional().describe("Version descriptor")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.getWikiPageContent(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("listWikiPages") && server.tool("listWikiPages", 
+      "List wiki pages in a hierarchical structure",
+      {
+        wikiIdentifier: z.string().describe("Wiki ID or name"),
+        versionDescriptor: z.object({
+          version: z.string().optional().describe("Version (branch, tag, or commit)"),
+          versionOptions: z.string().optional().describe("Version options"),
+          versionType: z.string().optional().describe("Version type")
+        }).optional().describe("Version descriptor"),
+        recursionLevel: z.enum(['none', 'oneLevel', 'oneLevelPlusNestedEmptyFolders', 'full']).optional().describe("Level of recursion")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.listWikiPages(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("searchWikiContent") && server.tool("searchWikiContent", 
+      "Search wiki content",
+      {
+        searchText: z.string().describe("Text to search for"),
+        wikiIdentifier: z.string().optional().describe("Wiki ID or name to search in"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        skip: z.number().optional().describe("Number of results to skip")
+      },
+      async (params, extra) => {
+        const result = await wikiTools.searchWikiContent(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
         };
       }
     );

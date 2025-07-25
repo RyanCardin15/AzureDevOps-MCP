@@ -14,7 +14,7 @@ This server provides a convenient API for interacting with Azure DevOps services
 
 ## Features
 
-The integration is organized into eight main tool categories:
+The integration is organized into nine main tool categories:
 
 ### Work Item Tools
 - List work items using WIQL queries
@@ -68,6 +68,20 @@ The integration is organized into eight main tool categories:
 - Get pull request comments
 - Approve pull requests
 - Merge pull requests
+
+### Wiki Tools
+- Create new wikis (project or code wikis)
+- Get wiki details by ID or name
+- List all wikis in the project
+- Update wiki properties
+- Delete wikis
+- Create or update wiki pages with Markdown content
+- Get wiki page metadata and content
+- Update existing wiki pages with concurrency control
+- Delete wiki pages
+- Get wiki page content in specific formats (markdown/html)
+- Navigate wiki page hierarchy
+- Search through wiki content
 
 ### Testing Capabilities Tools
 - Run automated tests
@@ -293,6 +307,7 @@ For Azure DevOps Services (cloud), you'll need to create a Personal Access Token
    - Work Items: Read & Write
    - Code: Read & Write
    - Project and Team: Read & Write
+   - Wiki: Read & Write
    - Build: Read
    - Release: Read
 
@@ -398,6 +413,43 @@ Once the server is running, you can interact with it using the MCP protocol. The
 }
 ```
 
+### Example: Create a Wiki
+
+```json
+{
+  "tool": "createWiki",
+  "params": {
+    "name": "Team Documentation",
+    "type": "projectWiki"
+  }
+}
+```
+
+### Example: Create a Wiki Page
+
+```json
+{
+  "tool": "createOrUpdateWikiPage",
+  "params": {
+    "wikiIdentifier": "Team Documentation",
+    "path": "/Getting Started/Setup Guide",
+    "content": "# Setup Guide\n\nThis guide will help you get started with our project.\n\n## Prerequisites\n\n- Node.js 16+\n- Azure DevOps access\n\n## Steps\n\n1. Clone the repository\n2. Install dependencies\n3. Configure environment variables"
+  }
+}
+```
+
+### Example: List Wiki Pages
+
+```json
+{
+  "tool": "listWikiPages",
+  "params": {
+    "wikiIdentifier": "Team Documentation",
+    "recursionLevel": "full"
+  }
+}
+```
+
 ## Architecture
 
 The project is structured as follows:
@@ -417,6 +469,7 @@ The service layer handles direct communication with the Azure DevOps API:
 - `BoardsSprintsService`: Boards and sprints operations
 - `ProjectService`: Project management operations
 - `GitService`: Git repository operations
+- `WikiService`: Wiki and wiki page operations
 - `TestingCapabilitiesService`: Testing capabilities operations
 - `DevSecOpsService`: DevSecOps operations
 - `ArtifactManagementService`: Artifact management operations
@@ -430,6 +483,7 @@ The tools layer wraps the services and provides a consistent interface for the M
 - `BoardsSprintsTools`: Tools for boards and sprints operations
 - `ProjectTools`: Tools for project management operations
 - `GitTools`: Tools for Git operations
+- `WikiTools`: Tools for wiki and wiki page operations
 - `TestingCapabilitiesTools`: Tools for testing capabilities operations
 - `DevSecOpsTools`: Tools for DevSecOps operations
 - `ArtifactManagementTools`: Tools for artifact management operations
