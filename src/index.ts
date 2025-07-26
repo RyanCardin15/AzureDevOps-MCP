@@ -80,21 +80,6 @@ async function main() {
       }
     );
     
-    allowedTools.has("searchWorkItems") && server.tool("searchWorkItems", 
-      "Search for work items by text",
-      {
-        searchText: z.string().describe("Text to search for in work items"),
-        top: z.number().optional().describe("Maximum number of work items to return")
-      },
-      async (params, extra) => {
-        const result = await workItemTools.searchWorkItems(params);
-        return {
-          content: result.content,
-          rawData: result.rawData,
-          isError: result.isError
-        };
-      }
-    );
     
     allowedTools.has("getRecentlyUpdatedWorkItems") && server.tool("getRecentlyUpdatedWorkItems", 
       "Get recently updated work items",
@@ -642,24 +627,6 @@ async function main() {
       }
     );
     
-    allowedTools.has("searchCode") && server.tool("searchCode", 
-      "Search for code in repositories",
-      {
-        searchText: z.string().describe("Text to search for"),
-        projectId: z.string().optional().describe("ID of the project"),
-        repositoryId: z.string().optional().describe("ID of the repository"),
-        fileExtension: z.string().optional().describe("File extension to filter by"),
-        top: z.number().optional().describe("Maximum number of results to return")
-      },
-      async (params, extra) => {
-        const result = await gitTools.searchCode(params);
-        return {
-          content: result.content,
-          rawData: result.rawData,
-          isError: result.isError
-        };
-      }
-    );
     
     allowedTools.has("browseRepository") && server.tool("browseRepository", 
       "Browse the contents of a repository",
