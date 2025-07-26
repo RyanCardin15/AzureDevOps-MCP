@@ -1,4 +1,5 @@
 export interface RunAutomatedTestsParams {
+  projectId?: string;
   testSuiteId?: number;
   testPlanId?: number;
   testEnvironment?: string;
@@ -6,11 +7,13 @@ export interface RunAutomatedTestsParams {
 }
 
 export interface GetTestAutomationStatusParams {
+  projectId?: string;
   testRunId: number;
 }
 
 export interface ConfigureTestAgentsParams {
   agentName: string;
+  poolId?: number;
   capabilities?: Record<string, any>;
   enabled?: boolean;
 }
@@ -54,6 +57,7 @@ export interface RunTestOptimizationParams {
 }
 
 export interface CreateExploratorySessionsParams {
+  projectId?: string;
   title: string;
   description?: string;
   areaPath?: string;
@@ -66,12 +70,14 @@ export interface RecordExploratoryTestResultsParams {
 }
 
 export interface ConvertFindingsToWorkItemsParams {
+  projectId?: string;
   sessionId: number;
   findingIds: number[];
   workItemType?: string;
 }
 
 export interface GetExploratoryTestStatisticsParams {
+  projectId?: string;
   timeRange?: string;
   userId?: string;
 } 

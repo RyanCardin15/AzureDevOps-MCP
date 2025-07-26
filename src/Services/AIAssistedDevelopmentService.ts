@@ -21,50 +21,50 @@ export class AIAssistedDevelopmentService extends AzureDevOpsService {
   }
 
   async getAICodeReview(params: GetAICodeReviewParams) {
-    throw new Error('getAICodeReview is not implemented yet');
+    throw new Error('getAICodeReview requires AI/ML services integration (such as Azure OpenAI or GitHub Copilot) which are not available in the basic azure-devops-node-api.');
   }
 
   async suggestCodeOptimization(params: SuggestCodeOptimizationParams) {
-    throw new Error('suggestCodeOptimization is not implemented yet');
+    throw new Error('suggestCodeOptimization requires AI/ML services integration which are not available in the basic azure-devops-node-api.');
   }
 
   async identifyCodeSmells(params: IdentifyCodeSmellsParams) {
-    throw new Error('identifyCodeSmells is not implemented yet');
+    throw new Error('identifyCodeSmells requires static code analysis tools integration which are not available in the basic azure-devops-node-api.');
   }
 
   async getPredictiveBugAnalysis(params: GetPredictiveBugAnalysisParams) {
-    throw new Error('getPredictiveBugAnalysis is not implemented yet');
+    throw new Error('getPredictiveBugAnalysis requires AI/ML predictive analytics which are not available in the basic azure-devops-node-api.');
   }
 
   async getDeveloperProductivity(params: GetDeveloperProductivityParams) {
-    throw new Error('getDeveloperProductivity is not implemented yet');
+    throw new Error('getDeveloperProductivity requires advanced analytics and reporting APIs which are not available in the basic azure-devops-node-api.');
   }
 
   async getPredictiveEffortEstimation(params: GetPredictiveEffortEstimationParams) {
-    throw new Error('getPredictiveEffortEstimation is not implemented yet');
+    throw new Error('getPredictiveEffortEstimation requires AI/ML predictive modeling which are not available in the basic azure-devops-node-api.');
   }
 
   async getCodeQualityTrends(params: GetCodeQualityTrendsParams) {
-    throw new Error('getCodeQualityTrends is not implemented yet');
+    throw new Error('getCodeQualityTrends requires code quality metrics APIs which are not available in the basic azure-devops-node-api.');
   }
 
   async suggestWorkItemRefinements(params: SuggestWorkItemRefinementsParams) {
-    throw new Error('suggestWorkItemRefinements is not implemented yet');
+    throw new Error('suggestWorkItemRefinements requires AI/ML natural language processing which are not available in the basic azure-devops-node-api.');
   }
 
   async suggestAutomationOpportunities(params: SuggestAutomationOpportunitiesParams) {
-    throw new Error('suggestAutomationOpportunities is not implemented yet');
+    throw new Error('suggestAutomationOpportunities requires AI/ML analysis of workflow patterns which are not available in the basic azure-devops-node-api.');
   }
 
   async createIntelligentAlerts(params: CreateIntelligentAlertsParams) {
-    throw new Error('createIntelligentAlerts is not implemented yet');
+    throw new Error('createIntelligentAlerts requires advanced monitoring and alerting APIs which are not available in the basic azure-devops-node-api.');
   }
 
   async predictBuildFailures(params: PredictBuildFailuresParams) {
-    throw new Error('predictBuildFailures is not implemented yet');
+    throw new Error('predictBuildFailures requires AI/ML predictive analytics on build data which are not available in the basic azure-devops-node-api.');
   }
 
   async optimizeTestSelection(params: OptimizeTestSelectionParams) {
-    throw new Error('optimizeTestSelection is not implemented yet');
+    throw new Error('optimizeTestSelection requires AI/ML test impact analysis which are not available in the basic azure-devops-node-api.');
   }
 } 

@@ -27,7 +27,7 @@ export class ArtifactManagementTools {
   async listArtifactFeeds(params: ListArtifactFeedsParams): Promise<McpResponse> {
     try {
       const result = await this.service.listArtifactFeeds(params);
-      return formatMcpResponse(result, `Found ${result.feeds.length} artifact feeds`);
+      return formatMcpResponse(result, `Found artifact feeds`);
     } catch (error: unknown) {
       console.error('Error listing artifact feeds:', error);
       return formatErrorResponse(error);
@@ -37,7 +37,7 @@ export class ArtifactManagementTools {
   async getPackageVersions(params: GetPackageVersionsParams): Promise<McpResponse> {
     try {
       const result = await this.service.getPackageVersions(params);
-      return formatMcpResponse(result, `Found ${result.versions.length} versions for package ${params.packageName}`);
+      return formatMcpResponse(result, `Found package versions for ${params.packageName}`);
     } catch (error: unknown) {
       console.error('Error getting package versions:', error);
       return formatErrorResponse(error);
@@ -47,7 +47,7 @@ export class ArtifactManagementTools {
   async publishPackage(params: PublishPackageParams): Promise<McpResponse> {
     try {
       const result = await this.service.publishPackage(params);
-      return formatMcpResponse(result, `Published package ${result.packageName} version ${result.packageVersion} to feed ${params.feedId}`);
+      return formatMcpResponse(result, `Published package to feed ${params.feedId}`);
     } catch (error: unknown) {
       console.error('Error publishing package:', error);
       return formatErrorResponse(error);
@@ -77,7 +77,7 @@ export class ArtifactManagementTools {
   async listContainerImages(params: ListContainerImagesParams): Promise<McpResponse> {
     try {
       const result = await this.service.listContainerImages(params);
-      return formatMcpResponse(result, `Found ${result.images.length} container images in repository ${params.repositoryName || 'all'}`);
+      return formatMcpResponse(result, `Found container images in repository ${params.repositoryName || 'all'}`);
     } catch (error: unknown) {
       console.error('Error listing container images:', error);
       return formatErrorResponse(error);
@@ -87,7 +87,7 @@ export class ArtifactManagementTools {
   async getContainerImageTags(params: GetContainerImageTagsParams): Promise<McpResponse> {
     try {
       const result = await this.service.getContainerImageTags(params);
-      return formatMcpResponse(result, `Found ${result.tags.length} tags for image ${params.imageName}`);
+      return formatMcpResponse(result, `Found tags for image ${params.imageName}`);
     } catch (error: unknown) {
       console.error('Error getting container image tags:', error);
       return formatErrorResponse(error);
@@ -97,7 +97,7 @@ export class ArtifactManagementTools {
   async scanContainerImage(params: ScanContainerImageParams): Promise<McpResponse> {
     try {
       const result = await this.service.scanContainerImage(params);
-      return formatMcpResponse(result, `Completed ${params.scanType || 'both'} scan of image ${params.imageTag} with overall risk ${result.overallRisk}`);
+      return formatMcpResponse(result, `Completed ${params.scanType || 'both'} scan of image ${params.imageTag}`);
     } catch (error: unknown) {
       console.error('Error scanning container image:', error);
       return formatErrorResponse(error);
@@ -141,8 +141,7 @@ export class ArtifactManagementTools {
       const result = await this.service.checkPackageDependencies(params);
       return formatMcpResponse(
         result, 
-        `Checked dependencies for ${params.packageName}${params.packageVersion ? ` version ${params.packageVersion}` : ''}: ` +
-        `${result.summary.totalDependencies} total, ${result.summary.vulnerableDependencies} vulnerable`
+        `Checked dependencies for ${params.packageName}${params.packageVersion ? ` version ${params.packageVersion}` : ''}`
       );
     } catch (error: unknown) {
       console.error('Error checking package dependencies:', error);

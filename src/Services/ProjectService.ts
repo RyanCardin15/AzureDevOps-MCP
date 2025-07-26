@@ -2,6 +2,7 @@ import * as azdev from 'azure-devops-node-api';
 import { CoreApi } from 'azure-devops-node-api/CoreApi';
 import { WorkItemTrackingProcessApi } from 'azure-devops-node-api/WorkItemTrackingProcessApi';
 import { ProjectVisibility } from 'azure-devops-node-api/interfaces/CoreInterfaces';
+import { TreeNodeStructureType, TreeStructureGroup } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
 import { AzureDevOpsConfig } from '../Interfaces/AzureDevOps';
 import { AzureDevOpsService } from './AzureDevOpsService';
 import {
@@ -157,21 +158,87 @@ export class ProjectService extends AzureDevOpsService {
    * Create area
    */
   public async createArea(params: CreateAreaParams): Promise<any> {
-    throw new Error('createArea is not implemented yet');
+    try {
+      const witApi = await this.getWorkItemTrackingApi();
+      
+      // Create classification node for area
+      const classificationNode = {
+        name: params.name,
+        structureType: TreeNodeStructureType.Area
+      };
+      
+      // If parentPath is provided, create under that path, otherwise create at root
+      const path = params.parentPath || 'Area';
+      
+      const result = await witApi.createOrUpdateClassificationNode(
+        classificationNode,
+        params.projectId || this.config.project,
+        TreeStructureGroup.Areas,
+        path
+      );
+      
+      return result;
+    } catch (error) {
+      console.error(`Error creating area ${params.name}:`, error);
+      throw error;
+    }
   }
 
   /**
    * Create iteration
    */
   public async createIteration(params: CreateIterationParams): Promise<any> {
-    throw new Error('createIteration is not implemented yet');
+    try {
+      const witApi = await this.getWorkItemTrackingApi();
+      
+      // Create classification node for iteration
+      const classificationNode: any = {
+        name: params.name,
+        structureType: TreeNodeStructureType.Iteration
+      };
+      
+      // Add date attributes if provided
+      if (params.startDate || params.finishDate) {
+        classificationNode.attributes = {};
+        if (params.startDate) {
+          classificationNode.attributes.startDate = params.startDate;
+        }
+        if (params.finishDate) {
+          classificationNode.attributes.finishDate = params.finishDate;
+        }
+      }
+      
+      // If parentPath is provided, create under that path, otherwise create at root
+      const path = params.parentPath || 'Iteration';
+      
+      const result = await witApi.createOrUpdateClassificationNode(
+        classificationNode,
+        params.projectId || this.config.project,
+        TreeStructureGroup.Iterations,
+        path
+      );
+      
+      return result;
+    } catch (error) {
+      console.error(`Error creating iteration ${params.name}:`, error);
+      throw error;
+    }
   }
 
   /**
    * Get processes
    */
   public async getProcesses(params: GetProcessesParams): Promise<any> {
-    throw new Error('getProcesses is not implemented yet');
+    try {
+      const processApi = await this.getProcessApi();
+      
+      const processes = await processApi.getListOfProcesses();
+      
+      return processes;
+    } catch (error) {
+      console.error('Error getting processes:', error);
+      throw error;
+    }
   }
 
   /**

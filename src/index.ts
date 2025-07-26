@@ -12,6 +12,9 @@ import { DevSecOpsTools } from './Tools/DevSecOpsTools';
 import { ArtifactManagementTools } from './Tools/ArtifactManagementTools';
 import { AIAssistedDevelopmentTools } from './Tools/AIAssistedDevelopmentTools';
 import { WikiTools } from './Tools/WikiTools';
+import { BuildTools } from './Tools/BuildTools';
+import { ReleaseTools } from './Tools/ReleaseTools';
+import { SearchTools } from './Tools/SearchTools';
 import { z } from 'zod';
 import { EntraAuthHandler } from './Services/EntraAuthHandler';
 
@@ -35,6 +38,9 @@ async function main() {
     const artifactManagementTools = new ArtifactManagementTools(azureDevOpsConfig);
     const aiAssistedDevelopmentTools = new AIAssistedDevelopmentTools(azureDevOpsConfig);
     const wikiTools = new WikiTools(azureDevOpsConfig);
+    const buildTools = new BuildTools(azureDevOpsConfig);
+    const releaseTools = new ReleaseTools(azureDevOpsConfig);
+    const searchTools = new SearchTools(azureDevOpsConfig);
 
     // Create MCP server
     const server = new McpServer({
@@ -816,6 +822,96 @@ async function main() {
       },
       async (params, extra) => {
         const result = await gitTools.mergePullRequest(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+    
+    allowedTools.has("searchCommits") && server.tool("searchCommits", 
+      "Search commits in a repository",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        projectId: z.string().optional().describe("ID of the project"),
+        searchCriteria: z.record(z.any()).optional().describe("Search criteria for commits"),
+        top: z.number().optional().describe("Maximum number of commits to return")
+      },
+      async (params, extra) => {
+        const result = await gitTools.searchCommits(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+    
+    allowedTools.has("getPullRequestsByCommit") && server.tool("getPullRequestsByCommit", 
+      "Get pull requests associated with a commit",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        commitId: z.string().describe("ID of the commit"),
+        projectId: z.string().optional().describe("ID of the project")
+      },
+      async (params, extra) => {
+        const result = await gitTools.getPullRequestsByCommit(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+    
+    allowedTools.has("createPullRequestThread") && server.tool("createPullRequestThread", 
+      "Create a comment thread on a pull request",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        pullRequestId: z.number().describe("ID of the pull request"),
+        projectId: z.string().optional().describe("ID of the project"),
+        comments: z.array(z.record(z.any())).describe("Array of comments to add"),
+        status: z.string().optional().describe("Status of the thread")
+      },
+      async (params, extra) => {
+        const result = await gitTools.createPullRequestThread(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+    
+    allowedTools.has("updatePullRequestThread") && server.tool("updatePullRequestThread", 
+      "Update the status of a pull request thread",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        pullRequestId: z.number().describe("ID of the pull request"),
+        threadId: z.number().describe("ID of the thread"),
+        projectId: z.string().optional().describe("ID of the project"),
+        status: z.string().describe("New status for the thread")
+      },
+      async (params, extra) => {
+        const result = await gitTools.updatePullRequestThread(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+    
+    allowedTools.has("getUserBranches") && server.tool("getUserBranches", 
+      "Get branches with user-specific information",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        projectId: z.string().optional().describe("ID of the project"),
+        userId: z.string().optional().describe("ID of the user to filter by")
+      },
+      async (params, extra) => {
+        const result = await gitTools.getUserBranches(params);
         return {
           content: result.content,
           rawData: result.rawData,
@@ -1688,6 +1784,216 @@ async function main() {
       }
     );
 
+    // Register Build Tools
+    allowedTools.has("getBuildDefinitions") && server.tool("getBuildDefinitions", 
+      "Get build definitions for a project",
+      {
+        projectId: z.string().optional().describe("Project ID or name"),
+        name: z.string().optional().describe("Filter by build definition name"),
+        repositoryId: z.string().optional().describe("Filter by repository ID"),
+        repositoryType: z.string().optional().describe("Filter by repository type"),
+        top: z.number().optional().describe("Maximum number of results to return")
+      },
+      async (params, extra) => {
+        const result = await buildTools.getBuildDefinitions(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getBuilds") && server.tool("getBuilds", 
+      "Get builds for a project",
+      {
+        projectId: z.string().optional().describe("Project ID or name"),
+        definitions: z.array(z.number()).optional().describe("Filter by build definition IDs"),
+        queues: z.array(z.number()).optional().describe("Filter by queue IDs"),
+        buildNumber: z.string().optional().describe("Filter by build number"),
+        top: z.number().optional().describe("Maximum number of results to return")
+      },
+      async (params, extra) => {
+        const result = await buildTools.getBuilds(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getBuild") && server.tool("getBuild", 
+      "Get a specific build",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        buildId: z.number().describe("Build ID")
+      },
+      async (params, extra) => {
+        const result = await buildTools.getBuild(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("queueBuild") && server.tool("queueBuild", 
+      "Queue a new build",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        definitionId: z.number().describe("Build definition ID"),
+        sourceBranch: z.string().optional().describe("Source branch for the build"),
+        parameters: z.string().optional().describe("Build parameters as JSON string")
+      },
+      async (params, extra) => {
+        const result = await buildTools.queueBuild(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getBuildLogs") && server.tool("getBuildLogs", 
+      "Get build logs",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        buildId: z.number().describe("Build ID")
+      },
+      async (params, extra) => {
+        const result = await buildTools.getBuildLogs(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getBuildTimeline") && server.tool("getBuildTimeline", 
+      "Get build timeline",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        buildId: z.number().describe("Build ID")
+      },
+      async (params, extra) => {
+        const result = await buildTools.getBuildTimeline(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    // Register Release Tools
+    allowedTools.has("getReleaseDefinitions") && server.tool("getReleaseDefinitions", 
+      "Get release definitions for a project",
+      {
+        projectId: z.string().optional().describe("Project ID or name"),
+        searchText: z.string().optional().describe("Search text to filter definitions"),
+        top: z.number().optional().describe("Maximum number of results to return")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.getReleaseDefinitions(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getReleases") && server.tool("getReleases", 
+      "Get releases for a project",
+      {
+        projectId: z.string().optional().describe("Project ID or name"),
+        definitionId: z.number().optional().describe("Filter by release definition ID"),
+        top: z.number().optional().describe("Maximum number of results to return")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.getReleases(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getRelease") && server.tool("getRelease", 
+      "Get a specific release",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        releaseId: z.number().describe("Release ID")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.getRelease(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("createRelease") && server.tool("createRelease", 
+      "Create a new release",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        definitionId: z.number().describe("Release definition ID"),
+        description: z.string().optional().describe("Release description"),
+        artifacts: z.array(z.any()).optional().describe("Artifacts for the release")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.createRelease(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("getReleaseLog") && server.tool("getReleaseLog", 
+      "Get release logs",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        releaseId: z.number().describe("Release ID"),
+        environmentId: z.number().describe("Environment ID"),
+        taskId: z.number().describe("Task ID")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.getReleaseLog(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("updateReleaseEnvironment") && server.tool("updateReleaseEnvironment", 
+      "Update release environment",
+      {
+        projectId: z.string().describe("Project ID or name"),
+        releaseId: z.number().describe("Release ID"),
+        environmentId: z.number().describe("Environment ID"),
+        environmentUpdateData: z.record(z.any()).describe("Environment update data")
+      },
+      async (params, extra) => {
+        const result = await releaseTools.updateReleaseEnvironment(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
     // Register Wiki Tools
     allowedTools.has("createWiki") && server.tool("createWiki", 
       "Create a new wiki",
@@ -1910,6 +2216,213 @@ async function main() {
       },
       async (params, extra) => {
         const result = await wikiTools.searchWikiContent(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    // Register Search Tools
+    allowedTools.has("searchCode") && server.tool("searchCode", 
+      "Search for code across repositories",
+      {
+        searchText: z.string().describe("Text to search for in code"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        repositoryId: z.string().optional().describe("Repository ID to search in"),
+        branchName: z.string().optional().describe("Branch name to search in"),
+        path: z.string().optional().describe("Path within repository to search"),
+        codeElement: z.array(z.string()).optional().describe("Code elements to search for (e.g., 'def', 'class')"),
+        fileExtension: z.string().optional().describe("File extension filter"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results"),
+        orderBy: z.array(z.object({
+          field: z.string().describe("Field to order by"),
+          sortOrder: z.enum(['ASC', 'DESC']).describe("Sort order")
+        })).optional().describe("Sort order for results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.searchCode(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("searchWorkItems") && server.tool("searchWorkItems", 
+      "Search for work items",
+      {
+        searchText: z.string().describe("Text to search for in work items"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        areaPath: z.string().optional().describe("Area path to filter by"),
+        workItemTypes: z.array(z.string()).optional().describe("Work item types to filter by"),
+        states: z.array(z.string()).optional().describe("Work item states to filter by"),
+        assignedTo: z.string().optional().describe("User assigned to filter by"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results"),
+        orderBy: z.array(z.object({
+          field: z.string().describe("Field to order by"),
+          sortOrder: z.enum(['ASC', 'DESC']).describe("Sort order")
+        })).optional().describe("Sort order for results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.searchWorkItems(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("searchWiki") && server.tool("searchWiki", 
+      "Search wiki content",
+      {
+        searchText: z.string().describe("Text to search for in wiki"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        wikiId: z.string().optional().describe("Wiki ID to search in"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results"),
+        orderBy: z.array(z.object({
+          field: z.string().describe("Field to order by"),
+          sortOrder: z.enum(['ASC', 'DESC']).describe("Sort order")
+        })).optional().describe("Sort order for results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.searchWiki(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("globalSearch") && server.tool("globalSearch", 
+      "Search across multiple entity types",
+      {
+        searchText: z.string().describe("Text to search for globally"),
+        searchFilters: z.object({
+          entityTypes: z.array(z.enum(['code', 'workItems', 'wiki'])).optional().describe("Entity types to search"),
+          projects: z.array(z.string()).optional().describe("Projects to search in")
+        }).optional().describe("Search filters"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.globalSearch(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("advancedCodeSearch") && server.tool("advancedCodeSearch", 
+      "Advanced code search with additional filters",
+      {
+        searchText: z.string().describe("Text to search for in code"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        repositoryId: z.string().optional().describe("Repository ID to search in"),
+        branchName: z.string().optional().describe("Branch name to search in"),
+        path: z.string().optional().describe("Path within repository to search"),
+        languageFilters: z.array(z.string()).optional().describe("Programming language filters (file extensions)"),
+        authorFilters: z.array(z.string()).optional().describe("Author filters"),
+        modifiedAfter: z.string().optional().describe("Search files modified after this date (YYYY-MM-DD)"),
+        modifiedBefore: z.string().optional().describe("Search files modified before this date (YYYY-MM-DD)"),
+        fileSizeMin: z.number().optional().describe("Minimum file size in bytes"),
+        fileSizeMax: z.number().optional().describe("Maximum file size in bytes"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.advancedCodeSearch(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("advancedWorkItemSearch") && server.tool("advancedWorkItemSearch", 
+      "Advanced work item search with additional filters",
+      {
+        searchText: z.string().describe("Text to search for in work items"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        areaPath: z.string().optional().describe("Area path to filter by"),
+        workItemTypes: z.array(z.string()).optional().describe("Work item types to filter by"),
+        states: z.array(z.string()).optional().describe("Work item states to filter by"),
+        assignedTo: z.string().optional().describe("User assigned to filter by"),
+        createdBy: z.string().optional().describe("User who created the work item"),
+        modifiedBy: z.string().optional().describe("User who last modified the work item"),
+        createdAfter: z.string().optional().describe("Search work items created after this date (YYYY-MM-DD)"),
+        createdBefore: z.string().optional().describe("Search work items created before this date (YYYY-MM-DD)"),
+        modifiedAfter: z.string().optional().describe("Search work items modified after this date (YYYY-MM-DD)"),
+        modifiedBefore: z.string().optional().describe("Search work items modified before this date (YYYY-MM-DD)"),
+        tags: z.array(z.string()).optional().describe("Tags to filter by"),
+        priority: z.array(z.string()).optional().describe("Priority levels to filter by"),
+        severity: z.array(z.string()).optional().describe("Severity levels to filter by"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.advancedWorkItemSearch(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("advancedWikiSearch") && server.tool("advancedWikiSearch", 
+      "Advanced wiki search with additional filters",
+      {
+        searchText: z.string().describe("Text to search for in wiki"),
+        projectId: z.string().optional().describe("Project ID to search in"),
+        wikiId: z.string().optional().describe("Wiki ID to search in"),
+        author: z.string().optional().describe("Author to filter by"),
+        modifiedAfter: z.string().optional().describe("Search wiki pages modified after this date (YYYY-MM-DD)"),
+        modifiedBefore: z.string().optional().describe("Search wiki pages modified before this date (YYYY-MM-DD)"),
+        pageType: z.array(z.string()).optional().describe("Page types to filter by"),
+        skip: z.number().optional().describe("Number of results to skip"),
+        top: z.number().optional().describe("Maximum number of results to return"),
+        includeFacets: z.boolean().optional().describe("Include search facets in results")
+      },
+      async (params, extra) => {
+        const result = await searchTools.advancedWikiSearch(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("searchRepository") && server.tool("searchRepository", 
+      "Search within a specific repository",
+      {
+        repositoryId: z.string().describe("Repository ID to search in"),
+        searchText: z.string().describe("Text to search for"),
+        projectId: z.string().optional().describe("Project ID"),
+        branchName: z.string().optional().describe("Branch name to search in"),
+        path: z.string().optional().describe("Path within repository to search"),
+        fileExtension: z.string().optional().describe("File extension filter"),
+        top: z.number().optional().describe("Maximum number of results to return")
+      },
+      async (params, extra) => {
+        const result = await searchTools.searchRepository(params);
         return {
           content: result.content,
           rawData: result.rawData,

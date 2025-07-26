@@ -1,6 +1,8 @@
 import * as azdev from 'azure-devops-node-api';
 import { Readable } from 'stream';
 import { GitApi } from 'azure-devops-node-api/GitApi';
+import { GitPullRequestQueryType } from 'azure-devops-node-api/interfaces/GitInterfaces';
+import { CommentThreadStatus } from 'azure-devops-node-api/interfaces/GitInterfaces';
 import { AzureDevOpsConfig } from '../Interfaces/AzureDevOps';
 import { AzureDevOpsService } from './AzureDevOpsService';
 import {
@@ -531,6 +533,195 @@ export class GitService extends AzureDevOpsService {
       return updatedPullRequest;
     } catch (error) {
       console.error(`Error completing pull request ${params.pullRequestId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search commits in a repository
+   */
+  public async searchCommits(params: { 
+    repositoryId: string; 
+    projectId?: string; 
+    searchCriteria?: any; 
+    top?: number; 
+  }): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const project = params.projectId || this.config.project;
+      
+      const commits = await gitApi.getCommits(
+        params.repositoryId,
+        params.searchCriteria,
+        project,
+        params.top
+      );
+      
+      return commits;
+    } catch (error) {
+      console.error(`Error searching commits in repository ${params.repositoryId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pull requests by commit
+   */
+  public async getPullRequestsByCommit(params: { 
+    repositoryId: string; 
+    commitId: string; 
+    projectId?: string; 
+  }): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const project = params.projectId || this.config.project;
+      
+      const pullRequests = await gitApi.getPullRequestQuery(
+        {
+          queries: [{
+            type: GitPullRequestQueryType.Commit,
+            items: [params.commitId]
+          }]
+        },
+        params.repositoryId,
+        project
+      );
+      
+      return pullRequests;
+    } catch (error) {
+      console.error(`Error getting pull requests for commit ${params.commitId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create comment thread on pull request
+   */
+  public async createPullRequestThread(params: { 
+    repositoryId: string; 
+    pullRequestId: number;
+    projectId?: string;
+    comments: any[];
+    status?: string;
+  }): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const project = params.projectId || this.config.project;
+      
+      // Convert string status to enum value
+      let threadStatus = CommentThreadStatus.Active;
+      if (params.status) {
+        switch (params.status.toLowerCase()) {
+          case 'active':
+            threadStatus = CommentThreadStatus.Active;
+            break;
+          case 'fixed':
+            threadStatus = CommentThreadStatus.Fixed;
+            break;
+          case 'wontfix':
+            threadStatus = CommentThreadStatus.WontFix;
+            break;
+          case 'closed':
+            threadStatus = CommentThreadStatus.Closed;
+            break;
+          case 'bydesign':
+            threadStatus = CommentThreadStatus.ByDesign;
+            break;
+          case 'pending':
+            threadStatus = CommentThreadStatus.Pending;
+            break;
+        }
+      }
+
+      const thread = await gitApi.createThread(
+        {
+          comments: params.comments,
+          status: threadStatus
+        },
+        params.repositoryId,
+        params.pullRequestId,
+        project
+      );
+      
+      return thread;
+    } catch (error) {
+      console.error(`Error creating thread on pull request ${params.pullRequestId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update pull request thread status
+   */
+  public async updatePullRequestThread(params: { 
+    repositoryId: string; 
+    pullRequestId: number;
+    threadId: number;
+    projectId?: string;
+    status: string;
+  }): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const project = params.projectId || this.config.project;
+      
+      // Convert string status to enum value
+      let threadStatus = CommentThreadStatus.Active;
+      switch (params.status.toLowerCase()) {
+        case 'active':
+          threadStatus = CommentThreadStatus.Active;
+          break;
+        case 'fixed':
+          threadStatus = CommentThreadStatus.Fixed;
+          break;
+        case 'wontfix':
+          threadStatus = CommentThreadStatus.WontFix;
+          break;
+        case 'closed':
+          threadStatus = CommentThreadStatus.Closed;
+          break;
+        case 'bydesign':
+          threadStatus = CommentThreadStatus.ByDesign;
+          break;
+        case 'pending':
+          threadStatus = CommentThreadStatus.Pending;
+          break;
+      }
+
+      const thread = await gitApi.updateThread(
+        { status: threadStatus },
+        params.repositoryId,
+        params.pullRequestId,
+        params.threadId,
+        project
+      );
+      
+      return thread;
+    } catch (error) {
+      console.error(`Error updating thread ${params.threadId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get branches with user-specific information
+   */
+  public async getUserBranches(params: { 
+    repositoryId: string; 
+    projectId?: string; 
+    userId?: string; 
+  }): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const project = params.projectId || this.config.project;
+      
+      // Get all branches first
+      const branches = await gitApi.getBranches(params.repositoryId, project);
+      
+      // If userId is provided, we could filter by user contributions
+      // For now, return all branches - getBranchStats is not available in the API
+      return branches;
+    } catch (error) {
+      console.error(`Error getting user branches for repository ${params.repositoryId}:`, error);
       throw error;
     }
   }

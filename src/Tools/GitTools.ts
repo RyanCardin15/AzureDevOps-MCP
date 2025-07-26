@@ -207,6 +207,96 @@ export class GitTools {
       return formatErrorResponse(error);
     }
   }
+
+  /**
+   * Search commits in a repository
+   */
+  public async searchCommits(params: { 
+    repositoryId: string; 
+    projectId?: string; 
+    searchCriteria?: any; 
+    top?: number; 
+  }): Promise<McpResponse> {
+    try {
+      const result = await this.gitService.searchCommits(params);
+      return formatMcpResponse(result, `Found ${result.length} commits`);
+    } catch (error: unknown) {
+      console.error('Error searching commits:', error);
+      return formatErrorResponse(error);
+    }
+  }
+
+  /**
+   * Get pull requests by commit
+   */
+  public async getPullRequestsByCommit(params: { 
+    repositoryId: string; 
+    commitId: string; 
+    projectId?: string; 
+  }): Promise<McpResponse> {
+    try {
+      const result = await this.gitService.getPullRequestsByCommit(params);
+      return formatMcpResponse(result, `Found pull requests for commit ${params.commitId}`);
+    } catch (error: unknown) {
+      console.error('Error getting pull requests by commit:', error);
+      return formatErrorResponse(error);
+    }
+  }
+
+  /**
+   * Create comment thread on pull request
+   */
+  public async createPullRequestThread(params: { 
+    repositoryId: string; 
+    pullRequestId: number;
+    projectId?: string;
+    comments: any[];
+    status?: string;
+  }): Promise<McpResponse> {
+    try {
+      const result = await this.gitService.createPullRequestThread(params);
+      return formatMcpResponse(result, `Created thread on pull request ${params.pullRequestId}`);
+    } catch (error: unknown) {
+      console.error('Error creating pull request thread:', error);
+      return formatErrorResponse(error);
+    }
+  }
+
+  /**
+   * Update pull request thread status
+   */
+  public async updatePullRequestThread(params: { 
+    repositoryId: string; 
+    pullRequestId: number;
+    threadId: number;
+    projectId?: string;
+    status: string;
+  }): Promise<McpResponse> {
+    try {
+      const result = await this.gitService.updatePullRequestThread(params);
+      return formatMcpResponse(result, `Updated thread ${params.threadId} status to ${params.status}`);
+    } catch (error: unknown) {
+      console.error('Error updating pull request thread:', error);
+      return formatErrorResponse(error);
+    }
+  }
+
+  /**
+   * Get branches with user-specific information
+   */
+  public async getUserBranches(params: { 
+    repositoryId: string; 
+    projectId?: string; 
+    userId?: string; 
+  }): Promise<McpResponse> {
+    try {
+      const result = await this.gitService.getUserBranches(params);
+      return formatMcpResponse(result, `Found ${result.length} branches with user information`);
+    } catch (error: unknown) {
+      console.error('Error getting user branches:', error);
+      return formatErrorResponse(error);
+    }
+  }
 }
 
 export const GitToolMethods = getClassMethods(GitTools.prototype);

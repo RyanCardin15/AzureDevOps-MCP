@@ -3,18 +3,40 @@
 # Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=RyanCardin15/AzureDevOps-MCP&type=Date)](https://star-history.com/#RyanCardin15/AzureDevOps-MCP&Date)
 
-A powerful integration for Azure DevOps that provides seamless access to work items, repositories, projects, boards, and sprints through the Model Context Protocol (MCP) server.
+A comprehensive and powerful integration for Azure DevOps that provides seamless access to work items, repositories, projects, boards, sprints, builds, releases, search, and more through the Model Context Protocol (MCP) server. This implementation follows Microsoft's official patterns and provides over 80 tools covering all major Azure DevOps functionality areas.
 
 ## Overview
 
 This server provides a convenient API for interacting with Azure DevOps services, enabling AI assistants and other tools to manage work items, code repositories, boards, sprints, and more. Built with the Model Context Protocol, it provides a standardized interface for communicating with Azure DevOps.
+
+## 🚀 Recent Major Enhancements
+
+This implementation has been significantly enhanced following Microsoft's official Azure DevOps MCP patterns with comprehensive new functionality:
+
+### ✨ **New Tool Categories Added**
+- **🔨 Build Management**: Complete build pipeline management with definitions, queuing, logs, and timelines
+- **🚀 Release Management**: Full release pipeline support with definitions, deployments, and environment management  
+- **🔍 Advanced Search**: Comprehensive search across code, work items, and wiki with advanced filtering
+
+### 🔧 **Enhanced Existing Tools**
+- **📁 Git Operations**: Extended with commit search, pull request threads, and advanced repository features
+- **📋 Project Management**: Enhanced with area/iteration creation and process template management
+- **🧪 Testing**: Implemented comprehensive test execution, automation, and analysis capabilities
+
+### 🎯 **Key Technical Improvements**
+- **Microsoft Pattern Compliance**: All new services follow Microsoft's "thin abstraction layer" approach
+- **Type Safety**: Comprehensive TypeScript interfaces with proper enum handling
+- **Error Handling**: Consistent error handling and graceful degradation throughout
+- **API Coverage**: Over 80 tools covering all major Azure DevOps REST API endpoints
+- **Search Integration**: Full Azure DevOps Search API integration with advanced filtering
+- **Production Ready**: Complete build system, proper authentication, and robust error recovery
 
 ## Demo
 ![Azure DevOps MCP Demo](AdoMcpDemo.gif)
 
 ## Features
 
-The integration is organized into nine main tool categories:
+The integration is organized into twelve main tool categories:
 
 ### Work Item Tools
 - List work items using WIQL queries
@@ -68,6 +90,11 @@ The integration is organized into nine main tool categories:
 - Get pull request comments
 - Approve pull requests
 - Merge pull requests
+- Search commits in repositories
+- Get pull requests by commit
+- Create pull request comment threads
+- Update pull request thread status
+- Get branches with user information
 
 ### Wiki Tools
 - Create new wikis (project or code wikis)
@@ -141,6 +168,32 @@ The integration is organized into nine main tool categories:
 - Create intelligent alerts
 - Predict build failures
 - Optimize test selection
+
+### Build Tools
+- Get build definitions for projects
+- Get builds with filtering options
+- Get specific build details
+- Queue new builds with parameters
+- Get build logs for troubleshooting
+- Get build timeline and task details
+
+### Release Tools
+- Get release definitions for projects
+- Get releases with filtering options
+- Get specific release details
+- Create new releases
+- Get release logs for environments
+- Update release environment status
+
+### Search Tools
+- Search code across repositories with advanced filters
+- Search work items with comprehensive filtering
+- Search wiki content across projects
+- Global search across multiple entity types
+- Advanced code search with language, author, and date filters
+- Advanced work item search with priority, severity, and tag filters
+- Advanced wiki search with author and modification date filters
+- Repository-specific search with path and extension filters
 
 ## Installation
 
@@ -308,8 +361,11 @@ For Azure DevOps Services (cloud), you'll need to create a Personal Access Token
    - Code: Read & Write
    - Project and Team: Read & Write
    - Wiki: Read & Write
-   - Build: Read
-   - Release: Read
+   - Build: Read & Write
+   - Release: Read & Write
+   - Test Management: Read
+   - Security: Read (for DevSecOps features)
+   - Package Management: Read & Write (for Artifact Management)
 
 For Azure DevOps Server (on-premises), create the PAT in your on-premises instance following similar steps.
 
@@ -360,7 +416,7 @@ Once the server is running, you can interact with it using the MCP protocol. The
 
 ### Available Tools
 
-> **Note:** By default, only a subset of tools are registered in the `index.ts` file to keep the initial implementation simple. See the [Tool Registration](#tool-registration) section for information on how to register additional tools.
+> **Note:** This implementation includes over 80 comprehensive tools covering all major Azure DevOps functionality areas. All tools are pre-registered and ready to use. See the [Tool Registration](#tool-registration) section for information on the complete tool set.
 
 ### Example: List Work Items
 
@@ -450,6 +506,92 @@ Once the server is running, you can interact with it using the MCP protocol. The
 }
 ```
 
+### Example: Search Code
+
+```json
+{
+  "tool": "searchCode",
+  "params": {
+    "searchText": "function calculateTotal",
+    "repositoryId": "repo-guid",
+    "fileExtension": ".js",
+    "top": 10
+  }
+}
+```
+
+### Example: Advanced Work Item Search
+
+```json
+{
+  "tool": "advancedWorkItemSearch",
+  "params": {
+    "searchText": "authentication bug",
+    "workItemTypes": ["Bug", "Task"],
+    "states": ["Active", "New"],
+    "priority": ["1", "2"],
+    "createdAfter": "2024-01-01",
+    "tags": ["security", "critical"]
+  }
+}
+```
+
+### Example: Get Build Definitions
+
+```json
+{
+  "tool": "getBuildDefinitions",
+  "params": {
+    "projectId": "MyProject",
+    "name": "CI Build",
+    "top": 10
+  }
+}
+```
+
+### Example: Queue a Build
+
+```json
+{
+  "tool": "queueBuild",
+  "params": {
+    "projectId": "MyProject",
+    "definitionId": 123,
+    "sourceBranch": "refs/heads/main",
+    "parameters": "{\"configuration\": \"Release\"}"
+  }
+}
+```
+
+### Example: Create a Release
+
+```json
+{
+  "tool": "createRelease",
+  "params": {
+    "projectId": "MyProject",
+    "definitionId": 456,
+    "description": "Release v1.2.0 with new features",
+    "artifacts": []
+  }
+}
+```
+
+### Example: Global Search
+
+```json
+{
+  "tool": "globalSearch",
+  "params": {
+    "searchText": "payment gateway",
+    "searchFilters": {
+      "entityTypes": ["code", "workItems", "wiki"]
+    },
+    "top": 5
+  }
+}
+```
+
 ## Architecture
 
 The project is structured as follows:
@@ -468,12 +610,15 @@ The service layer handles direct communication with the Azure DevOps API:
 - `WorkItemService`: Work item operations
 - `BoardsSprintsService`: Boards and sprints operations
 - `ProjectService`: Project management operations
-- `GitService`: Git repository operations
+- `GitService`: Git repository operations (enhanced with advanced features)
 - `WikiService`: Wiki and wiki page operations
 - `TestingCapabilitiesService`: Testing capabilities operations
 - `DevSecOpsService`: DevSecOps operations
 - `ArtifactManagementService`: Artifact management operations
 - `AIAssistedDevelopmentService`: AI-assisted development operations
+- `BuildService`: Build management operations
+- `ReleaseService`: Release management operations
+- `SearchService`: Advanced search across code, work items, and wiki
 
 ### Tools Layer
 
@@ -482,16 +627,19 @@ The tools layer wraps the services and provides a consistent interface for the M
 - `WorkItemTools`: Tools for work item operations
 - `BoardsSprintsTools`: Tools for boards and sprints operations
 - `ProjectTools`: Tools for project management operations
-- `GitTools`: Tools for Git operations
+- `GitTools`: Tools for Git operations (enhanced with advanced features)
 - `WikiTools`: Tools for wiki and wiki page operations
 - `TestingCapabilitiesTools`: Tools for testing capabilities operations
 - `DevSecOpsTools`: Tools for DevSecOps operations
 - `ArtifactManagementTools`: Tools for artifact management operations
 - `AIAssistedDevelopmentTools`: Tools for AI-assisted development operations
+- `BuildTools`: Tools for build management operations
+- `ReleaseTools`: Tools for release management operations
+- `SearchTools`: Tools for advanced search operations
 
 ## Tool Registration
 
-The MCP server requires tools to be explicitly registered in the `index.ts` file. By default, only a subset of all possible tools are registered to keep the initial implementation manageable.
+The MCP server requires tools to be explicitly registered in the `index.ts` file. This implementation includes a comprehensive set of tools across all major Azure DevOps functionality areas, with over 80 tools registered covering work items, repositories, builds, releases, search, wiki, testing, security, and more.
 
 To register more tools:
 
