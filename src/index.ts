@@ -11,6 +11,7 @@ import { TestingCapabilitiesTools } from './Tools/TestingCapabilitiesTools';
 import { DevSecOpsTools } from './Tools/DevSecOpsTools';
 import { ArtifactManagementTools } from './Tools/ArtifactManagementTools';
 import { AIAssistedDevelopmentTools } from './Tools/AIAssistedDevelopmentTools';
+import { TFVCTools } from './Tools/TFVCTools';
 import { z } from 'zod';
 import { EntraAuthHandler } from './Services/EntraAuthHandler';
 
@@ -33,6 +34,7 @@ async function main() {
     const devSecOpsTools = new DevSecOpsTools(azureDevOpsConfig);
     const artifactManagementTools = new ArtifactManagementTools(azureDevOpsConfig);
     const aiAssistedDevelopmentTools = new AIAssistedDevelopmentTools(azureDevOpsConfig);
+    const tfvcTools = new TFVCTools(azureDevOpsConfig);
 
     // Create MCP server
     const server = new McpServer({
@@ -1682,6 +1684,152 @@ async function main() {
         return {
           content: result.content,
           rawData: result.rawData,
+        };
+      }
+    );
+
+    // Register TFVC Tools
+    allowedTools.has("tfvcCheckout") && server.tool("tfvcCheckout",
+      "Checkout items for edit in TFVC",
+      {
+        project: z.string().optional().describe("Project name"),
+        items: z.array(z.object({
+          path: z.string().describe("Path to the item"),
+          version: z.string().optional().describe("Version of the item"),
+          recursionLevel: z.enum(['none', 'oneLevel', 'full']).optional().describe("Recursion level")
+        })).min(1).describe("Items to checkout")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.checkout(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcCheckin") && server.tool("tfvcCheckin",
+      "Checkin pending changes with work item association",
+      {
+        project: z.string().optional().describe("Project name"),
+        changes: z.array(z.object({
+          item: z.object({
+            path: z.string().describe("Item path"),
+            version: z.string().optional().describe("Item version")
+          }),
+          changeType: z.string().describe("Change type (edit, add, delete, etc.)")
+        })).optional().describe("Changes to checkin"),
+        comment: z.string().optional().describe("Checkin comment"),
+        checkinNotes: z.record(z.string()).optional().describe("Checkin notes"),
+        associatedWorkItems: z.array(z.number()).optional().describe("Work item IDs to associate with this changeset"),
+        overrideReason: z.string().optional().describe("Reason for policy override"),
+        policiesOverride: z.array(z.any()).optional().describe("Policy overrides")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.checkin(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcGetPendingChanges") && server.tool("tfvcGetPendingChanges",
+      "Get pending changes for the current workspace",
+      {
+        project: z.string().optional().describe("Project name"),
+        top: z.number().optional().describe("Maximum number of changes to return"),
+        skip: z.number().optional().describe("Number of changes to skip")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.getPendingChanges(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcUndoChanges") && server.tool("tfvcUndoChanges",
+      "Undo pending changes",
+      {
+        project: z.string().optional().describe("Project name"),
+        items: z.array(z.object({
+          path: z.string().describe("Path to the item"),
+          version: z.string().optional().describe("Version of the item"),
+          recursionLevel: z.enum(['none', 'oneLevel', 'full']).optional().describe("Recursion level")
+        })).min(1).describe("Items to undo")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.undoChanges(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcGetChangesets") && server.tool("tfvcGetChangesets",
+      "Get changesets (history)",
+      {
+        project: z.string().optional().describe("Project name"),
+        top: z.number().optional().describe("Maximum number of changesets to return"),
+        skip: z.number().optional().describe("Number of changesets to skip"),
+        fromDate: z.string().optional().describe("Filter changesets from this date"),
+        toDate: z.string().optional().describe("Filter changesets until this date"),
+        itemPath: z.string().optional().describe("Filter by item path")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.getChangesets(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcCreateShelveset") && server.tool("tfvcCreateShelveset",
+      "Create a shelveset (shelve pending changes without checking in)",
+      {
+        shelvesetName: z.string().describe("Name for the shelveset"),
+        project: z.string().optional().describe("Project name"),
+        changes: z.array(z.object({
+          item: z.object({
+            path: z.string().describe("Item path"),
+            version: z.string().optional().describe("Item version")
+          }),
+          changeType: z.string().describe("Change type")
+        })).optional().describe("Changes to shelve"),
+        comment: z.string().optional().describe("Shelveset comment"),
+        associatedWorkItems: z.array(z.number()).optional().describe("Work item IDs to associate")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.createShelveset(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
+
+    allowedTools.has("tfvcGetShelveset") && server.tool("tfvcGetShelveset",
+      "Get a specific shelveset",
+      {
+        shelvesetName: z.string().describe("Name of the shelveset"),
+        project: z.string().optional().describe("Project name")
+      },
+      async (params, extra) => {
+        const result = await tfvcTools.getShelveset(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
         };
       }
     );
