@@ -11,6 +11,18 @@ import { ProjectToolMethods } from './Tools/ProjectTools';
 import { TestingCapabilitiesToolMethods } from './Tools/TestingCapabilitiesTools';
 import { WorkItemToolMethods } from './Tools/WorkItemTools';
 
+// TFVC tools use "tfvc" prefix in registration but methods don't have the prefix
+// So we manually define the tool names with the prefix
+const TFVCToolNames = [
+  'tfvcCheckout',
+  'tfvcCheckin',
+  'tfvcGetPendingChanges',
+  'tfvcUndoChanges',
+  'tfvcGetChangesets',
+  'tfvcCreateShelveset',
+  'tfvcGetShelveset'
+];
+
 // Try to load environment variables from .env file with multiple possible locations
 function loadEnvFile() {
   // First try the current directory
@@ -138,7 +150,8 @@ const ALL_ALLOWED_TOOLS = AIAssistedDevelopmentToolMethods
   .concat(GitToolMethods)
   .concat(ProjectToolMethods)
   .concat(TestingCapabilitiesToolMethods)
-  .concat(WorkItemToolMethods);
+  .concat(WorkItemToolMethods)
+  .concat(TFVCToolNames);
 
 /**
  * Get allowed tools from `process.env.ALLOWED_TOOLS`.
