@@ -9,6 +9,7 @@ import {
   TfvcCreateShelvesetParams,
   TfvcGetShelvesetParams
 } from '../Interfaces/TFVC';
+import getClassMethods from "../utils/getClassMethods";
 
 export class TFVCTools {
   private tfvcService: TFVCService;
@@ -33,6 +34,19 @@ export class TFVCTools {
             }
           ],
           isError: true,
+          rawData: result
+        };
+      }
+
+      // If requiresCommand, show the command guidance message
+      if (result.requiresCommand) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: result.message
+            }
+          ],
           rawData: result
         };
       }
@@ -380,3 +394,5 @@ export class TFVCTools {
     return '📝';
   }
 }
+
+export const TFVCToolMethods = getClassMethods(TFVCTools.prototype);

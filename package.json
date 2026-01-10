@@ -1,7 +1,7 @@
 {
-  "name": "@ryancardin/azuredevops-mcp-server",
-  "version": "1.0.3",
-  "description": "MCP server for Azure DevOps integration - provides seamless access to work items, repositories, projects, boards, and sprints",
+  "name": "berzegerol-azuredevops-mcp-server",
+  "version": "1.0.5",
+  "description": "MCP server for Azure DevOps integration with TFVC support - provides seamless access to work items, repositories, projects, boards, and sprints",
   "main": "dist/index.js",
   "bin": {
     "azuredevops-mcp-server": "dist/index.js"
@@ -32,18 +32,20 @@
     "azure",
     "ai-assistant",
     "claude",
-    "integration"
+    "integration",
+    "tfvc",
+    "tfs"
   ],
-  "author": "Ryan Cardin <ryandcardin@gmail.com>",
+  "author": "Berzegerol",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RyanCardin15/AzureDevOps-MCP.git"
+    "url": "https://github.com/berzegerol/AzureDevOps-MCP.git"
   },
   "bugs": {
-    "url": "https://github.com/RyanCardin15/AzureDevOps-MCP/issues"
+    "url": "https://github.com/berzegerol/AzureDevOps-MCP/issues"
   },
-  "homepage": "https://github.com/RyanCardin15/AzureDevOps-MCP#readme",
+  "homepage": "https://github.com/berzegerol/AzureDevOps-MCP#readme",
   "engines": {
     "node": ">=16.0.0"
   },

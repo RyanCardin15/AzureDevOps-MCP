@@ -26,23 +26,27 @@ export class TFVCService extends AzureDevOpsService {
 
   /**
    * Checkout items for edit in TFVC
-   * Note: This uses the REST API directly as checkout may not be exposed in the Node SDK
+   * Note: TFVC checkout is done via command-line tool (tf.exe) as it requires workspace mapping
    */
   public async checkout(params: TfvcCheckoutParams): Promise<any> {
     try {
-      // TFVC checkout typically requires workspace mapping
-      // For now, we'll return a success message indicating manual checkout is needed
-      // In a real implementation, this would call the TFVC checkout endpoint
+      // TFVC checkout requires local workspace and is done via tf.exe command
+      // The REST API doesn't have a direct checkout endpoint
+      const commands = params.items.map(item =>
+        `tf checkout "${item.path}"${item.recursionLevel ? ' /recursive' : ''}`
+      );
+
       return {
         success: true,
-        message: `TFVC checkout requires workspace mapping. Please use Visual Studio or tf.exe to checkout the following items:\n${params.items.map(i => `  - ${i.path}`).join('\n')}`,
-        items: params.items
+        message: `📝 TFVC Checkout Commands:\n\nTFVC checkout requires local workspace. Run these commands in your workspace:\n\n${commands.map(c => `  ${c}`).join('\n')}\n\nOr use Visual Studio to checkout files.`,
+        items: params.items,
+        requiresCommand: true
       };
     } catch (error: any) {
-      console.error('Error checking out TFVC items:', error);
+      console.error('Error generating checkout commands:', error);
       return {
         success: false,
-        error: error.message || 'Failed to checkout items',
+        error: error.message || 'Failed to generate checkout commands',
         details: error
       };
     }
@@ -99,29 +103,22 @@ export class TFVCService extends AzureDevOpsService {
 
   /**
    * Get pending changes for the current workspace
+   * Note: This requires command-line tool as the REST API doesn't expose workspace state
    */
   public async getPendingChanges(params: TfvcPendingChangesParams): Promise<any> {
     try {
-      const tfvcApi = await this.getTfvcApi();
-
-      // Get pending changes using the workspace API
-      const pendingChanges = await (tfvcApi as any).getPendingChanges(
-        params.project || this.config.project,
-        undefined, // workspaceName
-        undefined, // owner
-        params.top,
-        params.skip
-      );
-
+      // TFVC pending changes are workspace-specific and accessed via tf.exe command
+      // The REST API doesn't have a method to query local workspace state
       return {
-        count: pendingChanges?.length || 0,
-        pendingChanges: pendingChanges || []
+        success: true,
+        message: `📋 TFVC Pending Changes Command:\n\nTo view pending changes, run:\n  tf status${params.project ? ` /collection:${this.config.orgUrl} /project:${params.project}` : ''}\n\nOr use Visual Studio -> Source Control Explorer to view pending changes.`,
+        requiresCommand: true
       };
     } catch (error: any) {
-      console.error('Error getting pending changes:', error);
+      console.error('Error generating pending changes command:', error);
       return {
         success: false,
-        error: error.message || 'Failed to get pending changes',
+        error: error.message || 'Failed to generate pending changes command',
         details: error
       };
     }
@@ -129,29 +126,26 @@ export class TFVCService extends AzureDevOpsService {
 
   /**
    * Undo pending changes
+   * Note: This requires command-line tool as the REST API doesn't have undo endpoint
    */
   public async undoChanges(params: TfvcUndoChangesParams): Promise<any> {
     try {
-      const tfvcApi = await this.getTfvcApi();
-
-      // Undo changes using the undo API
-      const undoResult = await (tfvcApi as any).undo(
-        {
-          items: params.items
-        },
-        params.project || this.config.project
+      // TFVC undo requires local workspace and is done via tf.exe command
+      const commands = params.items.map(item =>
+        `tf undo "${item.path}"${item.recursionLevel ? ' /recursive' : ''}`
       );
 
       return {
         success: true,
-        message: `Successfully undone changes for ${params.items.length} item(s)`,
-        undoResult: undoResult
+        message: `↩️ TFVC Undo Commands:\n\nTo undo pending changes, run:\n\n${commands.map(c => `  ${c}`).join('\n')}\n\nOr use Visual Studio -> Source Control Explorer to undo changes.`,
+        items: params.items,
+        requiresCommand: true
       };
     } catch (error: any) {
-      console.error('Error undoing TFVC changes:', error);
+      console.error('Error generating undo commands:', error);
       return {
         success: false,
-        error: error.message || 'Failed to undo changes',
+        error: error.message || 'Failed to generate undo commands',
         details: error
       };
     }
@@ -159,6 +153,7 @@ export class TFVCService extends AzureDevOpsService {
 
   /**
    * Get changesets (history)
+   * This is one of the few TFVC operations fully supported via REST API
    */
   public async getChangesets(params: TfvcGetChangesetsParams): Promise<any> {
     try {
@@ -177,11 +172,13 @@ export class TFVCService extends AzureDevOpsService {
         searchCriteria.itemPath = params.itemPath;
       }
 
-      const changesets = await (tfvcApi as any).getChangesets(
-        undefined, // top
-        undefined, // skip
+      // API signature: getChangesets(project, maxCommentLength, skip, top, orderby, searchCriteria)
+      const changesets = await tfvcApi.getChangesets(
         params.project || this.config.project,
-        undefined, // author
+        undefined, // maxCommentLength
+        params.skip,
+        params.top ? Number(params.top) : undefined,
+        undefined, // orderby
         searchCriteria
       );
 
