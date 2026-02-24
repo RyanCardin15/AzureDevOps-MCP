@@ -18,7 +18,7 @@ import {
   ApprovePullRequestParams,
   MergePullRequestParams,
   GetCommitsParams,
-  GetPullRequestsParams,
+  ListPullRequestsParams,
   CompletePullRequestParams
 } from '../Interfaces/CodeAndRepositories';
 
@@ -328,31 +328,32 @@ export class GitService extends AzureDevOpsService {
   /**
    * Get pull requests
    */
-  public async getPullRequests(params: GetPullRequestsParams): Promise<any> {
+  public async getPullRequests(params: ListPullRequestsParams): Promise<any> {
     try {
       const gitApi = await this.getGitApi();
-      
+
       // Create search criteria with proper types
       const searchCriteria: any = {
         repositoryId: params.repositoryId,
         creatorId: params.creatorId,
         reviewerId: params.reviewerId,
-        sourceRefName: params.sourceRefName,
-        targetRefName: params.targetRefName
       };
-      
-      // Convert string status to number if provided
+
+      // Convert string status to enum value
       if (params.status) {
-        if (params.status === 'active') searchCriteria.status = 1;
+        if (params.status === 'active')    searchCriteria.status = 1;
         else if (params.status === 'abandoned') searchCriteria.status = 2;
         else if (params.status === 'completed') searchCriteria.status = 3;
-        else if (params.status === 'notSet') searchCriteria.status = 0;
-        // 'all' doesn't need to be set
+        else if (params.status === 'notSet')    searchCriteria.status = 0;
+        else if (params.status === 'all')       searchCriteria.status = 4;
       }
-      
+
       const pullRequests = await gitApi.getPullRequests(
         params.repositoryId,
-        searchCriteria
+        searchCriteria,
+        undefined,   // maxCommentLength
+        params.skip,
+        params.top
       );
       
       return pullRequests;
