@@ -54,6 +54,9 @@ temp/
 coverage/
 .nyc_output/
 
+# Claude Code
+.claude/
+
 # Miscellaneous
 .cache/
 .project
