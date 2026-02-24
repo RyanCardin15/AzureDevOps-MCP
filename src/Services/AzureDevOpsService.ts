@@ -6,9 +6,9 @@ import {
 } from "../Interfaces/AzureDevOps";
 import {
   getPersonalAccessTokenHandler,
-  getNtlmHandler,
   getBasicHandler,
 } from "azure-devops-node-api/WebApi";
+import { HttpNtlmHandler } from "./HttpNtlmHandler";
 import * as VsoBaseInterfaces from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
 import {
   IRequestHandler,
@@ -44,7 +44,7 @@ export class AzureDevOpsService {
               "NTLM authentication requires username and password"
             );
           }
-          this.authHandler = getNtlmHandler(
+          this.authHandler = new HttpNtlmHandler(
             config.auth.username,
             config.auth.password,
             config.auth.domain
