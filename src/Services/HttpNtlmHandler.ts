@@ -1,4 +1,5 @@
 import * as http from 'http';
+import { Readable } from 'stream';
 import {
   IRequestHandler,
   IHttpClientResponse,
@@ -83,17 +84,25 @@ export class HttpNtlmHandler implements IRequestHandler {
       httpntlm[method](ntlmOpts, (err: Error | null, res: any) => {
         if (err) return reject(err);
 
-        // Duck-type IHttpClientResponse — the SDK only uses statusCode, headers,
-        // and readBody() after handleAuthentication resolves.
-        const fakeMessage = Object.assign(Object.create(http.IncomingMessage.prototype), {
+        // Build a proper Readable stream pre-loaded with the buffered body so
+        // that both readBody() and direct stream consumers (e.g. getItemContent)
+        // work correctly. Using Object.create(IncomingMessage.prototype) would
+        // skip the constructor and leave the stream's internal kState undefined,
+        // causing a crash when any .on('data'|'end'|'error') is attached.
+        const body = typeof res.body === 'string' ? res.body : '';
+        const bodyBuffer = Buffer.from(body, 'utf8');
+
+        const bodyStream = new Readable({ read() {} });
+        bodyStream.push(bodyBuffer);
+        bodyStream.push(null); // signal end-of-stream
+
+        const fakeMessage = Object.assign(bodyStream, {
           statusCode: res.statusCode as number,
           headers:    (res.headers ?? {}) as http.IncomingHttpHeaders,
         });
 
-        const body = typeof res.body === 'string' ? res.body : '';
-
         resolve({
-          message:  fakeMessage,
+          message:  fakeMessage as unknown as http.IncomingMessage,
           readBody: () => Promise.resolve(body),
         });
       });
