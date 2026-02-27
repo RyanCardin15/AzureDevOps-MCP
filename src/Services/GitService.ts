@@ -124,43 +124,45 @@ export class GitService extends AzureDevOpsService {
   public async searchCode(params: SearchCodeParams): Promise<any> {
     try {
       const gitApi = await this.getGitApi();
-      
-      // This is a simplified implementation using item search
-      // For more comprehensive code search, you'd use the Search API
+
+      // Full recursion (120) to traverse all directories
       const items = await gitApi.getItems(
         params.repositoryId || "",
         undefined,
         undefined,
-        undefined,
-        true,
+        120, // VersionControlRecursionType.Full
+        false,
         undefined,
         undefined,
         undefined,
         undefined,
         undefined
       );
-      
-      // Simple filter based on the search text and file extension
-      let filteredItems = items;
-      
+
+      // Only files, no folders
+      let filteredItems = items.filter(item => !item.isFolder);
+
       if (params.searchText) {
-        filteredItems = filteredItems.filter(item => 
+        filteredItems = filteredItems.filter(item =>
           item.path && item.path.toLowerCase().includes(params.searchText.toLowerCase())
         );
       }
-      
+
       if (params.fileExtension) {
-        filteredItems = filteredItems.filter(item => 
+        filteredItems = filteredItems.filter(item =>
           item.path && item.path.endsWith(params.fileExtension || "")
         );
       }
-      
-      // Limit results if top is specified
+
       if (params.top && filteredItems.length > params.top) {
         filteredItems = filteredItems.slice(0, params.top);
       }
-      
-      return filteredItems;
+
+      // Return only the fields Claude needs
+      return filteredItems.map(item => ({
+        path: item.path,
+        isFolder: false
+      }));
     } catch (error) {
       console.error(`Error searching code in repository ${params.repositoryId}:`, error);
       throw error;
@@ -173,21 +175,29 @@ export class GitService extends AzureDevOpsService {
   public async browseRepository(params: BrowseRepositoryParams): Promise<any> {
     try {
       const gitApi = await this.getGitApi();
-      
+
+      // OneLevel (1) recursion — return direct children of the given path
       const items = await gitApi.getItems(
         params.repositoryId,
         undefined,
         params.path,
-        undefined,
-        true,
+        1, // VersionControlRecursionType.OneLevel
+        false,
         undefined,
         undefined,
         undefined,
         undefined,
         undefined
       );
-      
-      return items;
+
+      // Exclude the folder itself (the root entry), return only its children
+      // Return only the fields Claude needs
+      return items
+        .filter(item => item.path !== params.path)
+        .map(item => ({
+          path: item.path,
+          isFolder: item.isFolder ?? false
+        }));
     } catch (error) {
       console.error(`Error browsing repository ${params.repositoryId}:`, error);
       throw error;
@@ -400,8 +410,8 @@ export class GitService extends AzureDevOpsService {
       
       const pullRequest = await gitApi.getPullRequest(
         params.repositoryId,
-        params.pullRequestId,
-        this.config.project
+        params.pullRequestId
+        // no project — server resolves repo by ID regardless of which project it belongs to
       );
       
       return pullRequest;
@@ -422,16 +432,16 @@ export class GitService extends AzureDevOpsService {
         const thread = await gitApi.getPullRequestThread(
           params.repositoryId,
           params.pullRequestId,
-          params.threadId,
-          this.config.project
+          params.threadId
+          // no project — server resolves repo by ID regardless of which project it belongs to
         );
-        
+
         return thread;
       } else {
         const threads = await gitApi.getThreads(
           params.repositoryId,
-          params.pullRequestId,
-          this.config.project
+          params.pullRequestId
+          // no project — server resolves repo by ID regardless of which project it belongs to
         );
         
         return threads;

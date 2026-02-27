@@ -221,11 +221,14 @@ export class ProjectService extends AzureDevOpsService {
    */
   public async getWorkItemTypes(params: GetWorkItemTypesParams): Promise<any> {
     try {
-      const witProcessApi = await this.getProcessApi();
-      
-      const workItemTypes = await witProcessApi.getProcessWorkItemTypes(params.processId);
-      
-      return workItemTypes;
+      const witApi = await this.connection.getWorkItemTrackingApi();
+
+      // Use the WIT API instead of the Process API — works on-premises (ADO 2019)
+      // processId is treated as the project name/id for on-premises
+      const project = params.processId || this.config.project;
+      const workItemTypes = await witApi.getWorkItemTypes(project);
+
+      return workItemTypes ?? [];
     } catch (error) {
       console.error(`Error getting work item types for process ${params.processId}:`, error);
       throw error;
@@ -237,20 +240,18 @@ export class ProjectService extends AzureDevOpsService {
    */
   public async getWorkItemTypeFields(params: GetWorkItemTypeFieldsParams): Promise<any> {
     try {
-      const witProcessApi = await this.getProcessApi();
-      
-      // Use getProcessWorkItemTypes as a workaround
-      const types = await witProcessApi.getProcessWorkItemTypes(params.processId);
-      
-      // Filter to the requested type if specified
-      let filteredTypes = types;
-      if (params.witRefName) {
-        filteredTypes = types.filter(type => type.referenceName === params.witRefName);
-      }
-      
+      const witApi = await this.connection.getWorkItemTrackingApi();
+
+      // Use the WIT API instead of the Process API — works on-premises (ADO 2019)
+      const project = params.processId || this.config.project;
+      const allTypes = await witApi.getWorkItemTypes(project) ?? [];
+
+      const filteredTypes = params.witRefName
+        ? allTypes.filter(type => type.referenceName === params.witRefName)
+        : allTypes;
+
       return {
-        types: filteredTypes,
-        message: "Direct field API not available, returning work item types instead"
+        types: filteredTypes
       };
     } catch (error) {
       console.error(`Error getting work item type fields for ${params.witRefName}:`, error);
