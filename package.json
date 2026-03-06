@@ -1,6 +1,6 @@
 {
   "name": "@ryancardin/azuredevops-mcp-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "MCP server for Azure DevOps integration - provides seamless access to work items, repositories, projects, boards, and sprints",
   "main": "dist/index.js",
   "bin": {
