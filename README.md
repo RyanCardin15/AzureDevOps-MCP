@@ -65,6 +65,7 @@ The integration is organized into eight main tool categories:
 - List pull requests
 - Create pull requests
 - Get pull request details
+- Get changed files in a pull request
 - Get pull request comments
 - Approve pull requests
 - Merge pull requests
@@ -476,6 +477,15 @@ server.tool("searchCode",
 #### Authentication Errors
 - Ensure your Personal Access Token is valid and has the required permissions
 - Check that the organization URL is correct
+
+#### `unexpected status code: 203`
+- This often indicates placeholder or incorrect configuration values were used
+- Verify `AZURE_DEVOPS_ORG_URL` uses your real org URL (not `your-organization`)
+- Verify `AZURE_DEVOPS_PROJECT` and `AZURE_DEVOPS_PERSONAL_ACCESS_TOKEN` are real values
+
+#### High Context/Token Consumption
+- Restrict tool registration with `ALLOWED_TOOLS` to only the methods you need
+- Example: `ALLOWED_TOOLS=listWorkItems,getWorkItemById,listPullRequests,getPullRequestChangedFiles`
 
 #### TypeScript Errors During Build
 - Use `npm run build:ignore-errors` to bypass TypeScript errors

@@ -14,6 +14,7 @@ import {
   GetCommitHistoryParams,
   CreatePullRequestParams,
   GetPullRequestParams,
+  GetPullRequestChangedFilesParams,
   GetPullRequestCommentsParams,
   ApprovePullRequestParams,
   MergePullRequestParams,
@@ -346,13 +347,17 @@ export class GitService extends AzureDevOpsService {
         if (params.status === 'active') searchCriteria.status = 1;
         else if (params.status === 'abandoned') searchCriteria.status = 2;
         else if (params.status === 'completed') searchCriteria.status = 3;
+        else if (params.status === 'all') searchCriteria.status = 4;
         else if (params.status === 'notSet') searchCriteria.status = 0;
-        // 'all' doesn't need to be set
       }
       
       const pullRequests = await gitApi.getPullRequests(
         params.repositoryId,
-        searchCriteria
+        searchCriteria,
+        params.projectId || this.config.project,
+        undefined,
+        params.skip,
+        params.top
       );
       
       return pullRequests;
@@ -406,6 +411,77 @@ export class GitService extends AzureDevOpsService {
       return pullRequest;
     } catch (error) {
       console.error(`Error getting pull request ${params.pullRequestId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get changed files in a pull request
+   */
+  public async getPullRequestChangedFiles(params: GetPullRequestChangedFilesParams): Promise<any> {
+    try {
+      const gitApi = await this.getGitApi();
+      const projectId = params.projectId || this.config.project;
+
+      let iterationId = params.iterationId;
+      if (!iterationId) {
+        const iterations = await gitApi.getPullRequestIterations(
+          params.repositoryId,
+          params.pullRequestId,
+          projectId
+        );
+
+        if (!iterations || iterations.length === 0) {
+          return {
+            pullRequestId: params.pullRequestId,
+            repositoryId: params.repositoryId,
+            iterationId: null,
+            changes: []
+          };
+        }
+
+        const latestIteration = iterations.reduce((latest, current) => {
+          if (!latest || (current.id || 0) > (latest.id || 0)) {
+            return current;
+          }
+          return latest;
+        });
+        iterationId = latestIteration.id;
+      }
+
+      if (!iterationId) {
+        throw new Error(`Unable to determine pull request iteration for pull request ${params.pullRequestId}`);
+      }
+
+      const iterationChanges = await gitApi.getPullRequestIterationChanges(
+        params.repositoryId,
+        params.pullRequestId,
+        iterationId,
+        projectId,
+        params.top,
+        params.skip,
+        params.compareTo
+      );
+
+      const changes = (iterationChanges.changeEntries || []).map((entry: any) => ({
+        path: entry.item?.path,
+        objectId: entry.item?.objectId,
+        originalPath: entry.item?.originalPath,
+        gitObjectType: entry.item?.gitObjectType,
+        commitId: entry.item?.commitId,
+        changeType: entry.changeType
+      }));
+
+      return {
+        pullRequestId: params.pullRequestId,
+        repositoryId: params.repositoryId,
+        iterationId,
+        nextSkip: iterationChanges.nextSkip,
+        nextTop: iterationChanges.nextTop,
+        changes
+      };
+    } catch (error) {
+      console.error(`Error getting changed files for pull request ${params.pullRequestId}:`, error);
       throw error;
     }
   }

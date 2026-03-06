@@ -64,6 +64,21 @@ export function getAzureDevOpsConfig(): AzureDevOpsConfig {
     throw new Error('Missing required Azure DevOps configuration. Please check .env file or environment variables.');
   }
 
+  const placeholderValues = [
+    'your-organization',
+    'your-project',
+    'your-default-project',
+    'your-personal-access-token'
+  ];
+
+  if (placeholderValues.some(value => orgUrl.includes(value))) {
+    throw new Error('AZURE_DEVOPS_ORG_URL appears to contain placeholder values. Replace it with your real Azure DevOps organization URL.');
+  }
+
+  if (placeholderValues.includes(project)) {
+    throw new Error('AZURE_DEVOPS_PROJECT appears to be a placeholder. Replace it with your real Azure DevOps project name.');
+  }
+
   // Authentication configuration
   const authTypeInput = process.env.AZURE_DEVOPS_AUTH_TYPE || 'pat';
   const authType = (authTypeInput === 'ntlm' || authTypeInput === 'basic' || authTypeInput === 'pat' || authTypeInput === 'entra')
@@ -105,6 +120,9 @@ export function getAzureDevOpsConfig(): AzureDevOpsConfig {
         if (!personalAccessToken) {
           throw new Error('PAT authentication requires a personal access token.');
         }
+        if (personalAccessToken === 'your-personal-access-token') {
+          throw new Error('AZURE_DEVOPS_PERSONAL_ACCESS_TOKEN appears to be a placeholder. Replace it with a real PAT.');
+        }
         auth = {
           type: 'pat'
         };
@@ -113,6 +131,9 @@ export function getAzureDevOpsConfig(): AzureDevOpsConfig {
     if (authType === 'pat') {
       if (!personalAccessToken) {
         throw new Error('PAT authentication requires a personal access token for Azure DevOps cloud unless AZURE_DEVOPS_AUTH_TYPE is set to entra.');
+      }
+      if (personalAccessToken === 'your-personal-access-token') {
+        throw new Error('AZURE_DEVOPS_PERSONAL_ACCESS_TOKEN appears to be a placeholder. Replace it with a real PAT.');
       }
       auth = { type: 'pat' };
     } else { // If not 'pat' and not 'entra' (already handled), then it's an unsupported type for cloud

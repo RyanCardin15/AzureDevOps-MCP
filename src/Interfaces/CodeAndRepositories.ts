@@ -162,6 +162,21 @@ export interface GetPullRequestsParams {
   sourceRefName?: string;
   targetRefName?: string;
   projectId?: string;
+  top?: number;
+  skip?: number;
+}
+
+/**
+ * Interface for getting changed files in a pull request
+ */
+export interface GetPullRequestChangedFilesParams {
+  repositoryId: string;
+  pullRequestId: number;
+  iterationId?: number;
+  compareTo?: number;
+  top?: number;
+  skip?: number;
+  projectId?: string;
 }
 
 /**

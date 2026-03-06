@@ -130,7 +130,7 @@ async function main() {
         state: z.string().optional().describe("Initial state of the work item"),
         areaPath: z.string().optional().describe("Area path for the work item"),
         iterationPath: z.string().optional().describe("Iteration path for the work item"),
-        additionalFields: z.record(z.any()).optional().describe("Additional fields to set on the work item")
+        additionalFields: z.record(z.string(), z.any()).optional().describe("Additional fields to set on the work item")
       },
       async (params, extra) => {
         const result = await workItemTools.createWorkItem(params);
@@ -146,7 +146,7 @@ async function main() {
       "Update an existing work item",
       {
         id: z.number().describe("ID of the work item to update"),
-        fields: z.record(z.any()).describe("Fields to update on the work item")
+        fields: z.record(z.string(), z.any()).describe("Fields to update on the work item")
       },
       async (params, extra) => {
         const result = await workItemTools.updateWorkItem(params);
@@ -237,11 +237,11 @@ async function main() {
             state: z.string().optional().describe("Initial state of the work item"),
             areaPath: z.string().optional().describe("Area path for the work item"),
             iterationPath: z.string().optional().describe("Iteration path for the work item"),
-            additionalFields: z.record(z.any()).optional().describe("Additional fields to set on the work item")
+            additionalFields: z.record(z.string(), z.any()).optional().describe("Additional fields to set on the work item")
           }),
           z.object({
             id: z.number().describe("ID of work item to update"),
-            fields: z.record(z.any()).describe("Fields to update on the work item")
+            fields: z.record(z.string(), z.any()).describe("Fields to update on the work item")
           })
         ])).min(1).describe("Array of work items to create or update")
       },
@@ -440,7 +440,7 @@ async function main() {
         name: z.string().describe("Name of the project"),
         description: z.string().optional().describe("Description of the project"),
         visibility: z.enum(['private', 'public']).optional().describe("Visibility of the project"),
-        capabilities: z.record(z.any()).optional().describe("Project capabilities"),
+        capabilities: z.record(z.string(), z.any()).optional().describe("Project capabilities"),
         processTemplateId: z.string().optional().describe("Process template ID")
       },
       async (params, extra) => {
@@ -768,6 +768,26 @@ async function main() {
         };
       }
     );
+
+    allowedTools.has("getPullRequestChangedFiles") && server.tool("getPullRequestChangedFiles", 
+      "Get changed files in a pull request",
+      {
+        repositoryId: z.string().describe("ID of the repository"),
+        pullRequestId: z.number().describe("ID of the pull request"),
+        iterationId: z.number().optional().describe("Specific pull request iteration ID (latest iteration is used by default)"),
+        compareTo: z.number().optional().describe("Compare changes against a previous iteration ID"),
+        top: z.number().optional().describe("Maximum number of changed files to return"),
+        skip: z.number().optional().describe("Number of changed files to skip")
+      },
+      async (params, extra) => {
+        const result = await gitTools.getPullRequestChangedFiles(params);
+        return {
+          content: result.content,
+          rawData: result.rawData,
+          isError: result.isError
+        };
+      }
+    );
     
     allowedTools.has("getPullRequestComments") && server.tool("getPullRequestComments", 
       "Get comments on a pull request",
@@ -860,7 +880,7 @@ async function main() {
       "Configure and manage test agents",
       {
         agentName: z.string().describe("Name of the test agent to configure"),
-        capabilities: z.record(z.any()).optional().describe("Capabilities to set for the agent"),
+        capabilities: z.record(z.string(), z.any()).optional().describe("Capabilities to set for the agent"),
         enabled: z.boolean().optional().describe("Whether the agent should be enabled")
       },
       async (params, extra) => {
@@ -877,7 +897,7 @@ async function main() {
       "Generate test data for automated tests",
       {
         name: z.string().describe("Name of the test data generator"),
-        dataSchema: z.record(z.any()).describe("Schema for the test data to generate"),
+        dataSchema: z.record(z.string(), z.any()).describe("Schema for the test data to generate"),
         recordCount: z.number().optional().describe("Number of records to generate")
       },
       async (params, extra) => {
@@ -895,7 +915,7 @@ async function main() {
       {
         environmentName: z.string().describe("Name of the test environment"),
         action: z.enum(['create', 'update', 'delete']).describe("Action to perform"),
-        properties: z.record(z.any()).optional().describe("Properties for the environment")
+        properties: z.record(z.string(), z.any()).optional().describe("Properties for the environment")
       },
       async (params, extra) => {
         const result = await testingCapabilitiesTools.manageTestEnvironments(params);
@@ -1195,7 +1215,7 @@ async function main() {
       {
         policyName: z.string().describe("Name of the security policy"),
         action: z.enum(['create', 'update', 'delete', 'get']).describe("Action to perform on the policy"),
-        policyDefinition: z.record(z.any()).optional().describe("Definition of the policy")
+        policyDefinition: z.record(z.string(), z.any()).optional().describe("Definition of the policy")
       },
       async (params, extra) => {
         const result = await devSecOpsTools.manageSecurityPolicies(params);
@@ -1421,7 +1441,7 @@ async function main() {
         repositoryName: z.string().describe("Name of the container repository"),
         policyType: z.enum(['retention', 'security', 'access']).describe("Type of policy to manage"),
         action: z.enum(['get', 'set', 'delete']).describe("Action to perform on the policy"),
-        policySettings: z.record(z.any()).optional().describe("Settings for the policy when setting")
+        policySettings: z.record(z.string(), z.any()).optional().describe("Settings for the policy when setting")
       },
       async (params, extra) => {
         const result = await artifactManagementTools.manageContainerPolicies(params);
@@ -1643,8 +1663,8 @@ async function main() {
       {
         alertName: z.string().describe("Name of the alert"),
         alertType: z.enum(['build', 'release', 'test', 'workitem', 'code']).describe("Type of alert to create"),
-        conditions: z.record(z.any()).describe("Conditions for the alert"),
-        actions: z.record(z.any()).optional().describe("Actions to take when the alert triggers")
+        conditions: z.record(z.string(), z.any()).describe("Conditions for the alert"),
+        actions: z.record(z.string(), z.any()).optional().describe("Actions to take when the alert triggers")
       },
       async (params, extra) => {
         const result = await aiAssistedDevelopmentTools.createIntelligentAlerts(params);
