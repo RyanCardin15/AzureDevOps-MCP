@@ -13,6 +13,7 @@ import {
   ListPullRequestsParams,
   CreatePullRequestParams,
   GetPullRequestParams,
+  GetPullRequestChangedFilesParams,
   GetPullRequestCommentsParams,
   ApprovePullRequestParams,
   MergePullRequestParams
@@ -165,6 +166,19 @@ export class GitTools {
       return formatMcpResponse(pullRequest, `Pull request ${params.pullRequestId} details`);
     } catch (error) {
       console.error('Error in getPullRequest tool:', error);
+      return formatErrorResponse(error);
+    }
+  }
+
+  /**
+   * Get changed files in a pull request
+   */
+  public async getPullRequestChangedFiles(params: GetPullRequestChangedFilesParams): Promise<McpResponse> {
+    try {
+      const changes = await this.gitService.getPullRequestChangedFiles(params);
+      return formatMcpResponse(changes, `Retrieved ${changes.changes?.length || 0} changed files for pull request ${params.pullRequestId}`);
+    } catch (error) {
+      console.error('Error in getPullRequestChangedFiles tool:', error);
       return formatErrorResponse(error);
     }
   }
