@@ -101,6 +101,7 @@ export interface CreatePullRequestParams {
   title: string;
   description?: string;
   reviewers?: string[];
+  workItemRefs?: number[];
 }
 
 /**

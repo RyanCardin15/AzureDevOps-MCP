@@ -379,7 +379,8 @@ export class GitService extends AzureDevOpsService {
         targetRefName: params.targetRefName,
         title: params.title,
         description: params.description,
-        reviewers: params.reviewers ? params.reviewers.map(id => ({ id })) : undefined
+        reviewers: params.reviewers ? params.reviewers.map(id => ({ id })) : undefined,
+        workItemRefs: params.workItemRefs ? params.workItemRefs.map(id => ({ id: String(id) })) : undefined
       };
       
       const createdPullRequest = await gitApi.createPullRequest(
