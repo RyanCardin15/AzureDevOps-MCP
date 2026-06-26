@@ -741,7 +741,8 @@ async function main() {
         targetRefName: z.string().describe("Target branch"),
         title: z.string().describe("Title of the pull request"),
         description: z.string().optional().describe("Description of the pull request"),
-        reviewers: z.array(z.string()).optional().describe("List of reviewers")
+        reviewers: z.array(z.string()).optional().describe("List of reviewers"),
+        workItemRefs: z.array(z.number()).optional().describe("List of work item IDs to link to the pull request")
       },
       async (params, extra) => {
         const result = await gitTools.createPullRequest(params);
